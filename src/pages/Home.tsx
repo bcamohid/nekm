@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { supabase, Training } from '../lib/supabase';
 import {
   Sprout, FlaskConical, CloudSun, Store, Landmark, Users,
   ArrowRight, CheckCircle, Star, ChevronRight,
@@ -45,6 +48,29 @@ const testimonials = [
 ];
 
 export default function Home() {
+  const { user } = useAuth();
+  const [featuredTrainings, setFeaturedTrainings] = useState<Training[]>([]);
+  const [trainingLoading, setTrainingLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTrainings = async () => {
+      try {
+        const { data } = await supabase
+          .from('trainings')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order')
+          .limit(3);
+        setFeaturedTrainings(data || []);
+      } catch (error) {
+        console.error('Error fetching trainings:', error);
+      } finally {
+        setTrainingLoading(false);
+      }
+    };
+    fetchTrainings();
+  }, []);
+
   return (
     <div className="pt-16">
       {/* Hero */}
@@ -68,12 +94,14 @@ export default function Home() {
               Krishi Mitra bridges modern agricultural knowledge with traditional farming wisdom — empowering farmers and agri-students across all 8 North East states.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link
-                to="/signup"
-                className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-green-500/30 hover:-translate-y-0.5"
-              >
-                Join Free Today <ArrowRight className="w-4 h-4" />
-              </Link>
+              {!user && (
+                <Link
+                  to="/signup"
+                  className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-green-500/30 hover:-translate-y-0.5"
+                >
+                  Join Free Today <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
               <Link
                 to="/services"
                 className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-xl border border-white/20 transition-all"
@@ -158,6 +186,52 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Featured Trainings */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <span className="text-green-600 font-semibold text-sm uppercase tracking-wider">Featured Trainings</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2">Live training courses from Supabase</h2>
+            <p className="text-gray-500 mt-3 max-w-xl mx-auto">
+              Updates made in the admin training panel are now reflected here instantly on the home page.
+            </p>
+          </div>
+
+          {trainingLoading ? (
+            <div className="flex justify-center py-16">
+              <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : featuredTrainings.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-gray-300 p-12 text-center text-gray-500">
+              No active training programs are available right now.
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {featuredTrainings.map((training) => (
+                <div key={training.id} className="group overflow-hidden rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
+                  <div className="relative h-56 overflow-hidden bg-gray-100">
+                    <img src={training.image_url} alt={training.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
+                      <div className="text-xs uppercase tracking-[0.2em] text-green-300">{training.mode}</div>
+                    </div>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{training.title}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">{training.description}</p>
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>{training.duration}</span>
+                      <Link to="/training" className="text-green-600 font-semibold hover:text-green-700">
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -248,12 +322,14 @@ export default function Home() {
             Join thousands of farmers and agri-students who are already benefiting from Krishi Mitra's network and services.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link
-              to="/signup"
-              className="inline-flex items-center gap-2 bg-white text-green-800 font-semibold px-6 py-3 rounded-xl hover:bg-green-50 transition-colors shadow"
-            >
-              Create Free Account <ArrowRight className="w-4 h-4" />
-            </Link>
+            {!user && (
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 bg-white text-green-800 font-semibold px-6 py-3 rounded-xl hover:bg-green-50 transition-colors shadow"
+              >
+                Create Free Account <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
             <Link
               to="/contact"
               className="inline-flex items-center gap-2 border-2 border-white/40 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors"

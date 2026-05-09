@@ -15,12 +15,31 @@ export default function Login() {
     setError('');
     setLoading(true);
 
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-    if (err) {
-      setError(err.message);
-    } else {
-      navigate('/dashboard');
+    // 1. Sign in the user
+    const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (authErr) {
+      setError(authErr.message);
+      setLoading(false);
+      return;
     }
+
+    // 2. Fetch their profile to check if they are an admin
+    if (authData.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', authData.user.id)
+        .single();
+
+      // 3. Redirect based on their role
+      if (profile?.is_admin) {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+    
     setLoading(false);
   }
 

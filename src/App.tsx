@@ -13,6 +13,7 @@ import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import MyCart from './pages/MyCart';
 
 function AppContent() {
   return (
@@ -25,6 +26,17 @@ function AppContent() {
           <Route path="/services" element={<Services />} />
           <Route path="/training" element={<Training />} />
           <Route path="/shop" element={<Shop />} />
+          
+          {/* ---> NEW CART ROUTE ADDED HERE <--- */}
+          <Route 
+            path="/cart" 
+            element={
+              <ProtectedRoute>
+                <MyCart />
+              </ProtectedRoute>
+            } 
+          />
+
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />

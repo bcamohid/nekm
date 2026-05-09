@@ -14,6 +14,7 @@ export interface Profile {
   email_address: string;
   address: string;
   role: UserRole;
+  is_admin: boolean;
   created_at: string;
 }
 
@@ -68,4 +69,13 @@ export interface AboutContent {
   image_url: string;
   is_active: boolean;
   updated_at: string;
+}
+export interface CartItem {
+  id: string;
+  user_id: string;
+  item_id: string;
+  quantity: number;
+  created_at: string;
+  // This optional property is for when we join the tables to get the product details!
+  shop_items?: ShopItem; 
 }
