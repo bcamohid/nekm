@@ -70,6 +70,7 @@ export interface AboutContent {
   is_active: boolean;
   updated_at: string;
 }
+
 export interface CartItem {
   id: string;
   user_id: string;
@@ -78,4 +79,47 @@ export interface CartItem {
   created_at: string;
   // This optional property is for when we join the tables to get the product details!
   shop_items?: ShopItem; 
+}
+
+export interface TrainingEnrollment {
+  id: string;
+  user_id: string;
+  training_id: string;
+  full_name: string;
+  mobile_number: string;
+  email_address: string;
+  address: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  trainings?: Training; // For joined queries
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+export interface Order {
+  id: string;
+  user_id: string;
+  full_name: string;
+  mobile_number: string;
+  address: string;
+  total_amount: number;
+  payment_method: 'QR_CODE' | 'COD';
+  status: 'pending' | 'accepted' | 'rejected' | 'delivered';
+  items: any; // Stores the JSON array of products
+  created_at: string;
+}
+export interface HelpMessage {
+  id: string;
+  user_id?: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'pending' | 'resolved';
+  created_at: string;
 }

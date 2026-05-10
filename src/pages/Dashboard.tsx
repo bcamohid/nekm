@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User, Edit2, Save, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { supabase, UserRole } from '../lib/supabase';
+import { supabase, UserRole, Notification, TrainingEnrollment } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -15,6 +15,47 @@ export default function Dashboard() {
     role: profile?.role || ('farmer' as UserRole),
   });
   const [saving, setSaving] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [enrollments, setEnrollments] = useState<TrainingEnrollment[]>([]);
+
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      return;
+    }
+    setNotifications(data || []);
+  }, [user]);
+
+  const fetchEnrollments = useCallback(async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('training_enrollments')
+      .select('*, trainings(*)')
+      .eq('user_id', user.id);
+    if (error) {
+      console.error('Error fetching enrollments:', error);
+      return;
+    }
+    setEnrollments(data || []);
+  }, [user]);
+
+  const markAsRead = useCallback(async (notificationId: string) => {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId);
+    if (error) {
+      console.error('Error marking notification as read:', error);
+      return;
+    }
+    await fetchNotifications();
+  }, [fetchNotifications]);
 
   async function handleSave() {
     if (!user) return;
@@ -29,6 +70,13 @@ export default function Dashboard() {
     await signOut();
     navigate('/');
   }
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+      fetchEnrollments();
+    }
+  }, [user, fetchNotifications, fetchEnrollments]);
 
   return (
     <div className="pt-20 min-h-screen bg-gray-50">
@@ -140,6 +188,50 @@ export default function Dashboard() {
                     Cancel
                   </button>
                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* My Courses and Notifications */}
+        <div className="grid md:grid-cols-2 gap-6 mt-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">My Courses</h2>
+            {enrollments.length === 0 ? (
+              <p className="text-gray-500 text-sm">No course enrollments yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {enrollments.map((enrollment) => (
+                  <div key={enrollment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="text-gray-900 font-medium">{enrollment.trainings?.title}</span>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      enrollment.status === 'accepted' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {enrollment.status === 'accepted' ? 'Accepted' : 'Pending'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Notifications</h2>
+            {notifications.length === 0 ? (
+              <p className="text-gray-500 text-sm">No notifications yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {notifications.map((notification) => (
+                  <div key={notification.id} className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-gray-900 text-sm">{notification.message}</p>
+                    <button
+                      onClick={() => markAsRead(notification.id)}
+                      className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Mark as Read
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
