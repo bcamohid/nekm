@@ -4,6 +4,9 @@ import { supabase, CartItem } from '../lib/supabase';
 import { Trash2, Plus, Minus, MapPin, IndianRupee, Edit2, Save, ShoppingBag, QrCode, Banknote, CheckCircle, X, User as UserIcon, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
+// --- YOUR LOCAL QR CODE IMPORT ---
+import paymentQrCode from '../assets/qr_code.jpg';
+
 export default function MyCart() {
   const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
@@ -266,7 +269,8 @@ export default function MyCart() {
                 {paymentMethod === 'QR_CODE' && (
                   <div className="mb-8 text-center bg-gray-50 p-4 rounded-xl border border-gray-200">
                     <p className="text-sm font-semibold text-gray-700 mb-3">Scan this code to pay ₹{finalTotal}</p>
-                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=northeastkrishimitra@upi&pn=NorthEastKrishimitra&am=${finalTotal}`} alt="Payment QR" className="mx-auto w-32 h-32 rounded-lg" />
+                    {/* HERE IS YOUR REAL QR CODE IMPORTED FROM ASSETS */}
+                    <img src={paymentQrCode} alt="Payment QR" className="mx-auto w-48 h-48 rounded-lg shadow-sm object-contain" />
                   </div>
                 )}
 
