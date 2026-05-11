@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react';
 import { Leaf, Target, Eye, Heart, Award } from 'lucide-react';
 import { supabase, AboutContent } from '../lib/supabase';
 
+// --- IMPORT LOCAL TEAM PHOTOS ---
+import photo1 from '../assets/team/image_974b9a.jpg';
+import photo2 from '../assets/team/image_974894.jpg';
+import photo3 from '../assets/team/image_974838.jpg';
+import photo4 from '../assets/team/image_9747f8.jpg';
+
 const values = [
   { icon: Target, title: 'Our Mission', desc: 'To bridge the gap between modern agricultural science and traditional farming in North East India through accessible, localised support.' },
   { icon: Eye, title: 'Our Vision', desc: 'A prosperous, self-sufficient farming community across all 8 North East states where every farmer has access to quality knowledge and markets.' },
@@ -9,10 +15,30 @@ const values = [
 ];
 
 const team = [
-  { name: 'Dr. Arun Sharma', role: 'Chief Agronomist', img: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg' },
-  { name: 'Priya Gogoi', role: 'Community Manager', img: 'https://images.pexels.com/photos/3796217/pexels-photo-3796217.jpeg' },
-  { name: 'Bikash Chetri', role: 'Training Coordinator', img: 'https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg' },
-  { name: 'Nirmala Devi', role: 'Market Linkage Lead', img: 'https://images.pexels.com/photos/3184405/pexels-photo-3184405.jpeg' },
+  { 
+    name: 'Rudra Upadhaya', 
+    role: 'Special Technician of Button Mushroom Grower', 
+    description: 'With 26 years of perfect experience. From Hariyana (Punjab).',
+    img: photo1 
+  },
+  { 
+    name: 'Bornali Sharmah Baruah', 
+    role: 'Founder of EASY HEAT pvt ltd', 
+    description: 'From Golaghat (Assam).',
+    img: photo2 
+  },
+  { 
+    name: 'Dr. Shahjamal Zakaria', 
+    role: 'Chief Scientist, Horticulture Dept. (China, Hongkong)', 
+    description: 'From Guwahati (Assam).',
+    img: photo3 
+  },
+  { 
+    name: 'Dr. Jamini Kumar Dutta', 
+    role: 'Asst. Scientist, Plant Pathology Dept.', 
+    description: 'Lakhimpur Krishi Vigyan Kendra.',
+    img: photo4 
+  },
 ];
 
 export default function About() {
@@ -104,11 +130,11 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <span className="text-green-600 font-semibold text-sm uppercase tracking-wider">The People</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2">Meet Our Team</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2">Meet Our Mentors</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {team.map((m) => (
-              <div key={m.name} className="text-center group">
+              <div key={m.name} className="text-center group flex flex-col items-center">
                 <div className="relative mb-4 mx-auto w-36 h-36">
                   <img
                     src={m.img}
@@ -117,8 +143,9 @@ export default function About() {
                   />
                   <div className="absolute inset-0 rounded-2xl ring-2 ring-green-600/0 group-hover:ring-green-600/40 transition-all" />
                 </div>
-                <h3 className="font-semibold text-gray-900">{m.name}</h3>
-                <p className="text-sm text-green-600 mt-1">{m.role}</p>
+                <h3 className="font-bold text-gray-900 leading-tight">{m.name}</h3>
+                <p className="text-sm font-semibold text-green-600 mt-1 mb-2">{m.role}</p>
+                <p className="text-xs text-gray-500 px-2">{m.description}</p>
               </div>
             ))}
           </div>

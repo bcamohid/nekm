@@ -29,12 +29,13 @@ export default function Navbar() {
     await signOut();
     navigate('/');
     setDropdownOpen(false);
+    setOpen(false);
   }
 
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-white py-4'
+        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-white py-4'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,7 +46,7 @@ export default function Navbar() {
             <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center group-hover:bg-green-700 transition-colors">
               <Leaf className="w-6 h-6 text-white" />
             </div>
-            <span className="font-bold text-xl text-green-800 tracking-tight">NorthEastKrishimitra</span>
+            <span className="font-bold text-xl text-green-800 tracking-tight hidden sm:block">NorthEastKrishimitra</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -85,21 +86,38 @@ export default function Navbar() {
                     className="flex items-center gap-2 bg-gray-50 border border-gray-100 hover:bg-gray-100 px-4 py-2 rounded-full transition-colors"
                   >
                     <User className="w-4 h-4 text-gray-600" />
-                    <span className="text-sm font-semibold text-gray-700">
+                    <span className="text-sm font-semibold text-gray-700 max-w-[120px] truncate">
                       {profile?.full_name?.split(' ')[0] || 'Account'}
                     </span>
                     <ChevronDown className="w-4 h-4 text-gray-400" />
                   </button>
 
                   {dropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 overflow-hidden">
+                    <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-2 overflow-hidden z-50">
+                      
+                      {/* 1. MY PROFILE (Visible to Everyone) */}
                       <Link
-                        to={isAdmin ? "/admin" : "/dashboard"}
+                        to="/dashboard"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors"
                       >
-                        <LayoutDashboard className="w-4 h-4" /> Dashboard
+                        <User className="w-4 h-4" /> My Profile
                       </Link>
+
+                      {/* 2. ADMIN DASHBOARD (Visible to Admins ONLY) */}
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors"
+                        >
+                          <LayoutDashboard className="w-4 h-4" /> Admin Dashboard
+                        </Link>
+                      )}
+
+                      <hr className="my-1 border-gray-100" />
+                      
+                      {/* 3. SIGN OUT */}
                       <button
                         onClick={handleSignOut}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
@@ -131,7 +149,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setOpen(!open)}
-            className="lg:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+            className="lg:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-lg z-50"
           >
             {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -140,7 +158,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {open && (
-        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-100 shadow-lg px-4 py-6 flex flex-col gap-4 max-h-[calc(100vh-80px)] overflow-y-auto">
+        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-100 shadow-xl px-4 py-6 flex flex-col gap-4 max-h-[calc(100vh-80px)] overflow-y-auto">
           {navLinks.map((link) => (
             <NavLink
               key={link.label}
@@ -164,15 +182,28 @@ export default function Navbar() {
                 <p className="text-sm font-bold text-gray-900">{profile?.full_name}</p>
                 <p className="text-xs text-gray-500 capitalize">{profile?.role?.replace('_', ' ')}</p>
               </div>
+              
+              {/* 1. MY PROFILE (Visible to Everyone) */}
               <Link
-                to={isAdmin ? "/admin" : "/dashboard"}
+                to="/dashboard"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50"
               >
-                <LayoutDashboard className="w-5 h-5 text-gray-400" /> Dashboard
+                <User className="w-5 h-5 text-gray-400" /> My Profile
               </Link>
+
+              {/* 2. ADMIN DASHBOARD (Visible to Admins ONLY) */}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                  <LayoutDashboard className="w-5 h-5 text-gray-400" /> Admin Dashboard
+                </Link>
+              )}
               
-              {/* MOBILE CART LINK HERE */}
+              {/* CART */}
               <Link
                 to="/cart"
                 onClick={() => setOpen(false)}
@@ -181,8 +212,9 @@ export default function Navbar() {
                 <ShoppingBag className="w-5 h-5 text-green-600" /> My Cart
               </Link>
 
+              {/* 3. SIGN OUT */}
               <button
-                onClick={() => { handleSignOut(); setOpen(false); }}
+                onClick={handleSignOut}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50"
               >
                 <LogOut className="w-5 h-5" /> Sign Out
