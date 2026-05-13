@@ -194,7 +194,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <span className="text-green-600 font-semibold text-sm uppercase tracking-wider">Featured Trainings</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2">Live training courses from Supabase</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2">Live training courses</h2>
             <p className="text-gray-500 mt-3 max-w-xl mx-auto">
               Updates made in the admin training panel are now reflected here instantly on the home page.
             </p>

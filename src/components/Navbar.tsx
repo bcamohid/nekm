@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, Leaf, ChevronDown, LogOut, User, LayoutDashboard, ShoppingBag } from 'lucide-react';
+import { Menu, X, ChevronDown, LogOut, User, LayoutDashboard, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+// --- IMPORT YOUR NEW LOGO HERE ---
+import myLogo from '../assets/logo.jpg';
 
 const navLinks = [
   { label: 'Home', to: '/' },
@@ -41,12 +44,16 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center group-hover:bg-green-700 transition-colors">
-              <Leaf className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-xl text-green-800 tracking-tight hidden sm:block">NorthEastKrishimitra</span>
+          {/* --- UPDATED LOGO SECTION --- */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <img 
+              src={myLogo} 
+              alt="North East Krishi Mitra" 
+              className="w-12 h-12 rounded-lg object-contain"
+            />
+            <span className="font-bold text-xl text-gray-900 tracking-tight hidden sm:block">
+              NorthEastKrishimitra
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -95,7 +102,7 @@ export default function Navbar() {
                   {dropdownOpen && (
                     <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-2 overflow-hidden z-50">
                       
-                      {/* 1. MY PROFILE (Visible to Everyone) */}
+                      {/* 1. MY PROFILE */}
                       <Link
                         to="/dashboard"
                         onClick={() => setDropdownOpen(false)}
@@ -104,7 +111,7 @@ export default function Navbar() {
                         <User className="w-4 h-4" /> My Profile
                       </Link>
 
-                      {/* 2. ADMIN DASHBOARD (Visible to Admins ONLY) */}
+                      {/* 2. ADMIN DASHBOARD */}
                       {isAdmin && (
                         <Link
                           to="/admin"
@@ -183,7 +190,6 @@ export default function Navbar() {
                 <p className="text-xs text-gray-500 capitalize">{profile?.role?.replace('_', ' ')}</p>
               </div>
               
-              {/* 1. MY PROFILE (Visible to Everyone) */}
               <Link
                 to="/dashboard"
                 onClick={() => setOpen(false)}
@@ -192,7 +198,6 @@ export default function Navbar() {
                 <User className="w-5 h-5 text-gray-400" /> My Profile
               </Link>
 
-              {/* 2. ADMIN DASHBOARD (Visible to Admins ONLY) */}
               {isAdmin && (
                 <Link
                   to="/admin"
@@ -203,7 +208,6 @@ export default function Navbar() {
                 </Link>
               )}
               
-              {/* CART */}
               <Link
                 to="/cart"
                 onClick={() => setOpen(false)}
@@ -212,7 +216,6 @@ export default function Navbar() {
                 <ShoppingBag className="w-5 h-5 text-green-600" /> My Cart
               </Link>
 
-              {/* 3. SIGN OUT */}
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50"
