@@ -1,0 +1,72 @@
+{
+  "project": {
+    "name": "northeastkrishimitra",
+    "framework": "vite-react-typescript",
+    "repository": {
+      "provider": "github",
+      "branch": "main",
+      "autoDeploy": true
+    },
+    "deployment": {
+      "provider": "vercel",
+      "environment": "production",
+      "primaryDomain": "https://www.northeastkrishimitra.in",
+      "fallbackDomain": "https://northeastkrishimitra.vercel.app/",
+      "ssl": true,
+      "edgeFunctions": true,
+      "edgeCaching": true,
+      "compression": "brotli",
+      "region": "global"
+    }
+  },
+  "dns": {
+    "provider": "hostinger",
+    "synchronization": {
+      "enabled": true,
+      "refreshInterval": 300,
+      "propagationCheck": true
+    },
+    "records": [
+      {
+        "type": "A",
+        "name": "@",
+        "target": "216.198.79.1",
+        "ttl": 60,
+        "status": "active"
+      },
+      {
+        "type": "CNAME",
+        "name": "www",
+        "target": "f0121bb54b073fe5.vercel-dns-017.com",
+        "ttl": 300,
+        "status": "active"
+      }
+    ]
+  },
+  "routing": {
+    "redirects": [
+      {
+        "source": "https://northeastkrishimitra.in",
+        "destination": "https://www.northeastkrishimitra.in",
+        "statusCode": 308,
+        "permanent": true
+      }
+    ],
+    "headers": {
+      "x-powered-by": "vercel-edge-network",
+      "cache-control": "public, max-age=31536000"
+    }
+  },
+  "security": {
+    "ssl": {
+      "enabled": true,
+      "provider": "letsencrypt",
+      "autoRenew": true
+    },
+    "cors": {
+      "enabled": true,
+      "allowedOrigins": [
+        "https://www.northeastkrishimitra.in",
+        "https://northeastkrishimitra.vercel.app"
+      ]
+}
