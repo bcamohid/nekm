@@ -1,22 +1,38 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User, Edit2, Save, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { supabase, UserRole, Notification, TrainingEnrollment } from '../lib/supabase';
+import { supabase, Notification, TrainingEnrollment } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const { user, profile, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+  
+  // Form State
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || '',
-    mobile_number: profile?.mobile_number || '',
-    address: profile?.address || '',
-    role: profile?.role || ('farmer' as UserRole),
+    full_name: '',
+    mobile_number: '',
+    email_address: '',
+    address: '',
+    role: 'farmer',
   });
   const [saving, setSaving] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [enrollments, setEnrollments] = useState<TrainingEnrollment[]>([]);
+
+  // Automatically populate form when profile data loads from user_details table
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        mobile_number: profile.mobile_number || '',
+        email_address: profile.email_address || '',
+        address: profile.address || '',
+        role: profile.role || 'farmer',
+      });
+    }
+  }, [profile]);
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
@@ -57,12 +73,28 @@ export default function Dashboard() {
     await fetchNotifications();
   }, [fetchNotifications]);
 
+  // --- SAVES DATA TO NEW USER_DETAILS TABLE ---
   async function handleSave() {
     if (!user) return;
     setSaving(true);
-    await supabase.from('profiles').update(formData).eq('id', user.id);
-    await refreshProfile();
-    setEditing(false);
+    
+    const { error } = await supabase
+      .from('user_details')
+      .update({
+        full_name: formData.full_name,
+        mobile_number: formData.mobile_number,
+        email_address: formData.email_address,
+        address: formData.address,
+        role: formData.role
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      alert("Error updating profile: " + error.message);
+    } else {
+      await refreshProfile();
+      setEditing(false);
+    }
     setSaving(false);
   }
 
@@ -90,7 +122,8 @@ export default function Dashboard() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold">{profile?.full_name || 'User'}</h1>
-                <p className="text-green-200">{user?.email}</p>
+                {/* Fixed to load your actual custom email address field */}
+                <p className="text-green-200 text-sm">{profile?.email_address || 'No email specified'}</p>
               </div>
             </div>
           </div>
@@ -98,26 +131,27 @@ export default function Dashboard() {
           {/* Content */}
           <div className="p-8">
             {!editing ? (
+              /* --- VIEW PROFILE MODE --- */
               <div className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase">Full Name</label>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Full Name</label>
                     <p className="text-gray-900 font-medium mt-1">{profile?.full_name || '—'}</p>
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase">Email</label>
-                    <p className="text-gray-900 font-medium mt-1">{user?.email}</p>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Email Address</label>
+                    <p className="text-gray-900 font-medium mt-1">{profile?.email_address || '—'}</p>
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase">Mobile</label>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Mobile</label>
                     <p className="text-gray-900 font-medium mt-1">{profile?.mobile_number || '—'}</p>
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase">Role</label>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</label>
                     <p className="text-gray-900 font-medium mt-1 capitalize">{profile?.role?.replace('_', ' ') || '—'}</p>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="text-xs font-semibold text-gray-500 uppercase">Address</label>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Address</label>
                     <p className="text-gray-900 font-medium mt-1">{profile?.address || '—'}</p>
                   </div>
                 </div>
@@ -127,7 +161,7 @@ export default function Dashboard() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setEditing(true)}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors"
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors shadow-sm"
                   >
                     <Edit2 className="w-4 h-4" /> Edit Profile
                   </button>
@@ -140,6 +174,7 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
+              /* --- EDIT PROFILE MODE --- */
               <div className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
@@ -148,7 +183,16 @@ export default function Dashboard() {
                       type="text"
                       value={formData.full_name}
                       onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-green-600 transition-colors"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <input
+                      type="email"
+                      value={formData.email_address}
+                      onChange={(e) => setFormData({ ...formData, email_address: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition-colors"
                     />
                   </div>
                   <div>
@@ -157,8 +201,20 @@ export default function Dashboard() {
                       type="tel"
                       value={formData.mobile_number}
                       onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-green-600 transition-colors"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition-colors"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                    <select
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 bg-white transition-colors"
+                    >
+                      <option value="farmer">Farmer</option>
+                      <option value="student">Agri-Student</option>
+                      <option value="expert">Agricultural Expert</option>
+                    </select>
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
@@ -166,7 +222,7 @@ export default function Dashboard() {
                       type="text"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-green-600 transition-colors"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition-colors"
                     />
                   </div>
                 </div>
@@ -177,7 +233,7 @@ export default function Dashboard() {
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors"
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors shadow-sm"
                   >
                     <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -193,7 +249,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* My Courses and Notifications */}
+        {/* My Courses and Notifications Row */}
         <div className="grid md:grid-cols-2 gap-6 mt-8">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">My Courses</h2>

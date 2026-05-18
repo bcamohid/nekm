@@ -1,109 +1,100 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Leaf, LogIn } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import myLogo from '../../assets/logo.jpg';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const navigate = useNavigate();
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
-    // 1. Sign in the user
-    const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (authErr) {
-      setError(authErr.message);
+    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+
+    // 1. Authenticate User
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      phone: formattedPhone,
+      password: password,
+    });
+
+    if (authError) {
+      alert("Login Failed: " + authError.message);
       setLoading(false);
       return;
     }
 
-    // 2. Fetch their profile to check if they are an admin
     if (authData.user) {
+      // 2. Fetch their specific role from user_details
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('user_details')
         .select('is_admin')
         .eq('id', authData.user.id)
         .single();
 
-      // 3. Redirect based on their role
-      if (profile?.is_admin) {
+      setLoading(false);
+
+      // 3. Smart Redirect based on is_admin flag
+      if (profile?.is_admin === true) {
         navigate('/admin');
       } else {
         navigate('/dashboard');
       }
     }
-    
-    setLoading(false);
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 pt-20">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-          <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-              <Leaf className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-green-800">NorthEastKrishimitra</span>
-          </Link>
-
-          <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">Welcome Back</h1>
-          <p className="text-gray-500 text-center mb-6">Log in to access your account</p>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition-colors"
-                placeholder="your@email.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition-colors"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
-            >
-              <LogIn className="w-4 h-4" /> {loading ? 'Signing In...' : 'Sign In'}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-gray-600 mt-6">
-            Don't have an account?{' '}
-            <Link to="/signup" className="font-semibold text-green-600 hover:text-green-700">
-              Create one
-            </Link>
-          </p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-16 p-4">
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md text-center">
+        
+        <div className="flex justify-center mb-4">
+          <img src={myLogo} alt="Logo" className="w-16 h-16 rounded-xl shadow-sm" />
         </div>
+        
+        <h2 className="text-2xl font-bold mb-1">Welcome Back</h2>
+        <p className="text-gray-500 text-sm mb-6">Log in to access your account</p>
+
+        <form onSubmit={handleLogin} className="space-y-4 text-left">
+          <div>
+            <label className="block text-sm font-semibold mb-1">Mobile Number</label>
+            <input
+              type="tel"
+              required
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none"
+              placeholder="10-digit number"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-1">Password</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none"
+              placeholder="Enter your password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mt-6 transition-colors"
+          >
+            {loading ? 'Authenticating...' : 'Sign In'}
+          </button>
+        </form>
+
+        <p className="mt-6 text-sm">
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-green-600 font-semibold hover:underline">Create one</Link>
+        </p>
       </div>
     </div>
   );

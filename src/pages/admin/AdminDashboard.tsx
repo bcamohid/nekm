@@ -72,8 +72,9 @@ export default function AdminDashboard() {
 
   // --- FETCH FUNCTIONS ---
   async function fetchStats() {
+    // FIXED: Changed from 'profiles' to 'user_details'
     const [profilesData, servicesData, trainingsCount, shopData, ordersData, helpData] = await Promise.all([
-      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('user_details').select('id', { count: 'exact', head: true }),
       supabase.from('services').select('id', { count: 'exact', head: true }),
       supabase.from('trainings').select('id', { count: 'exact', head: true }),
       supabase.from('shop_items').select('id', { count: 'exact', head: true }),
@@ -97,7 +98,8 @@ export default function AdminDashboard() {
   }
 
   async function fetchProfiles() {
-    const { data, error } = await supabase.from('profiles').select('id, full_name, email_address, role, created_at').order('created_at', { ascending: false });
+    // FIXED: Changed from 'profiles' to 'user_details'
+    const { data, error } = await supabase.from('user_details').select('id, full_name, email_address, role, created_at').order('created_at', { ascending: false });
     if (error) return;
     setProfiles(data || []);
   }

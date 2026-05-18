@@ -51,8 +51,9 @@ export default function Navbar() {
               alt="North East Krishi Mitra" 
               className="w-12 h-12 rounded-lg object-contain"
             />
-            <span className="font-bold text-xl text-gray-900 tracking-tight hidden sm:block">
-              NorthEastKrishimitra
+            {/* FIXED: Removed "hidden sm:block" so it shows on all screens! */}
+            <span className="font-bold text-xl text-gray-900 tracking-tight">
+              NorthEastKrishiMitra
             </span>
           </Link>
 

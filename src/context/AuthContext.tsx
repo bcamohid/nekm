@@ -1,11 +1,23 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase, Profile } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
+
+// Define the precise structure matching your new user_details table
+export interface UserDetails {
+  id: string;
+  full_name: string;
+  mobile_number: string;
+  email_address: string;
+  address: string;
+  role: string;
+  created_at: string;
+  is_admin?: boolean | null;
+}
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  profile: Profile | null;
+  profile: UserDetails | null;
   isAdmin: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -24,6 +36,7 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
 });
 
+// We keep these mock variables so your old test buttons don't crash the app
 const mockAdminUser = {
   id: 'admin-1020',
   email: 'admin@local',
@@ -32,12 +45,6 @@ const mockAdminUser = {
   aud: 'authenticated',
   phone: undefined,
   created_at: new Date().toISOString(),
-  last_sign_in_at: undefined,
-  confirmation_sent_at: undefined,
-  confirmed_at: undefined,
-  email_confirmed_at: undefined,
-  phone_confirmed_at: undefined,
-  factor_setup: undefined,
 } as User;
 
 const mockAdminProfile = {
@@ -46,41 +53,37 @@ const mockAdminProfile = {
   mobile_number: '',
   email_address: 'admin@local',
   address: '',
-  role: 'farmer',
+  role: 'admin',
   created_at: new Date().toISOString(),
-} as Profile;
+  is_admin: true,
+} as UserDetails;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<UserDetails | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const getStoredAdmin = () => typeof window !== 'undefined' && sessionStorage.getItem('mock_admin_auth') === '1';
 
-async function fetchProfile(userId: string) {
+  // --- 100% CONNECTED TO YOUR SINGLE USER_DETAILS TABLE ---
+  async function fetchProfile(userId: string) {
     const { data, error } = await supabase
-      .from('profiles')
+      .from('user_details')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching user details:", error.message);
+    }
 
     if (data) {
       setProfile(data);
-      // Simply set isAdmin based on the profile data!
+      // This single line replaces the old admins table check!
       setIsAdmin(data.is_admin === true); 
     }
-    setLoading(false);
-  }
-
-  async function checkAdmin(userId: string) {
-    const { data } = await supabase
-      .from('admins')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
-    setIsAdmin(!!data);
   }
 
   async function refreshProfile() {
@@ -95,15 +98,14 @@ async function fetchProfile(userId: string) {
       setSession(session);
       if (session?.user) {
         setUser(session.user);
-        Promise.all([fetchProfile(session.user.id), checkAdmin(session.user.id)]).finally(() =>
-          setLoading(false)
-        );
+        // We removed the old checkAdmin function here because the table is gone
+        fetchProfile(session.user.id).finally(() => setLoading(false));
       } else if (storedAdmin) {
         setUser(mockAdminUser);
         setProfile(mockAdminProfile);
         setIsAdmin(true);
         setLoading(false);
-            } else {
+      } else {
         setUser(null);
         setLoading(false);
       }
@@ -115,16 +117,19 @@ async function fetchProfile(userId: string) {
       if (session?.user) {
         setUser(session.user);
         (async () => {
-          await Promise.all([fetchProfile(session.user.id), checkAdmin(session.user.id)]);
+          await fetchProfile(session.user.id);
+          setLoading(false);
         })();
       } else if (storedAdmin) {
         setUser(mockAdminUser);
         setProfile(mockAdminProfile);
         setIsAdmin(true);
+        setLoading(false);
       } else {
         setUser(null);
         setProfile(null);
         setIsAdmin(false);
+        setLoading(false);
       }
     });
 
@@ -143,6 +148,7 @@ async function fetchProfile(userId: string) {
     setIsAdmin(false);
   }
 
+  // We keep this function alive so old buttons don't throw an error when clicked
   async function signInAsAdmin() {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('mock_admin_auth', '1');

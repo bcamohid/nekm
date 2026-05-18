@@ -1,11 +1,21 @@
 import { Link } from 'react-router-dom';
-import { Leaf, Mail, Phone, MapPin, Facebook, Twitter, Youtube } from 'lucide-react';
+import { Leaf, Mail, Phone, MapPin, Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
 
 export default function Footer() {
+  
+  // --- ADD YOUR SOCIAL MEDIA LINKS HERE ---
+  const socialLinks = [
+    { Icon: Facebook, url: 'https://www.facebook.com/profile.php?id=61589915551482' },
+    { Icon: Twitter, url: '' },
+    { Icon: Youtube, url: '' },
+    { Icon: Instagram, url: '' },
+  ];
+
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+          
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
@@ -19,12 +29,16 @@ export default function Footer() {
             <p className="text-sm leading-relaxed text-gray-400">
               Empowering farmers and agriculture students across North East India with knowledge, tools, and community support.
             </p>
+            
+            {/* Social Icons */}
             <div className="flex gap-3 mt-5">
-              {[Facebook, Twitter, Youtube].map((Icon, i) => (
+              {socialLinks.map(({ Icon, url }, i) => (
                 <a
                   key={i}
-                  href="#"
-                  className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-green-600 transition-colors"
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-green-600 hover:text-white transition-colors"
                 >
                   <Icon className="w-4 h-4" />
                 </a>

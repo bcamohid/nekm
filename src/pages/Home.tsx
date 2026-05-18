@@ -51,7 +51,25 @@ export default function Home() {
   const { user } = useAuth();
   const [featuredTrainings, setFeaturedTrainings] = useState<Training[]>([]);
   const [trainingLoading, setTrainingLoading] = useState(true);
+  
+  // NEW: State to hold the live user count
+  const [liveUserCount, setLiveUserCount] = useState<number | null>(null);
 
+  // Fetch Live Users
+  useEffect(() => {
+    async function fetchLiveUsers() {
+      const { count, error } = await supabase
+        .from('user_details')
+        .select('*', { count: 'exact', head: true });
+
+      if (!error && count !== null) {
+        setLiveUserCount(count);
+      }
+    }
+    fetchLiveUsers();
+  }, []);
+
+  // Fetch Trainings
   useEffect(() => {
     const fetchTrainings = async () => {
       try {
@@ -119,7 +137,12 @@ export default function Home() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {heroStats.map((s) => (
               <div key={s.label} className="text-center">
-                <div className="text-3xl font-bold text-white">{s.value}</div>
+                <div className="text-3xl font-bold text-white">
+                  {/* Smart replacement: Shows live count for Farmers, keeps static values for others */}
+                  {s.label === 'Registered Farmers' && liveUserCount !== null 
+                    ? `${liveUserCount}+` 
+                    : s.value}
+                </div>
                 <div className="text-green-200 text-sm mt-1">{s.label}</div>
               </div>
             ))}
