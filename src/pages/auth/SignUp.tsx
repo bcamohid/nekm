@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import myLogo from '../../assets/logo.jpg';
 
 export default function Signup() {
-  const navigate = useNavigate();
-  
   // Form Details
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -22,6 +20,14 @@ export default function Signup() {
   // PHASE 1: Submit Details & Trigger Twilio SMS
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Strict Email Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address (e.g., yourname@gmail.com).");
+      return;
+    }
+
     if (password.length < 6) {
       alert("Password must be at least 6 characters long.");
       return;
@@ -30,7 +36,6 @@ export default function Signup() {
     setLoading(true);
     const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
 
-    // Sign up the user with Phone & Password (this triggers the SMS)
     const { error } = await supabase.auth.signUp({
       phone: formattedPhone,
       password: password,
@@ -65,8 +70,9 @@ export default function Signup() {
     }
 
     if (session) {
-      // Insert the data into our newly created 'user_details' table
-      const { error: dbError } = await supabase.from('user_details').insert([{
+      // Changed from .insert() to .upsert() to guarantee the data saves
+      // even if Supabase accidentally created a shadow row earlier.
+      const { error: dbError } = await supabase.from('user_details').upsert([{
         id: session.user.id,
         full_name: fullName,
         mobile_number: formattedPhone,
@@ -82,7 +88,8 @@ export default function Signup() {
         alert("Account verified, but there was an error saving your profile details.");
       } else {
         alert("Account created successfully!");
-        navigate('/dashboard');
+        // Forces a hard reload so the Dashboard fetches fresh database rows
+        window.location.href = '/dashboard'; 
       }
     }
   }
@@ -98,23 +105,59 @@ export default function Signup() {
         {!showOtpField ? (
           <form onSubmit={handleSignUp} className="space-y-4 text-left">
             <div>
-              <label className="block text-sm font-semibold mb-1">Full Name</label>
-              <input type="text" required value={fullName} onChange={e => setFullName(e.target.value)} className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none" placeholder="Enter your name" />
+              <label htmlFor="fullName" className="block text-sm font-semibold mb-1">Full Name</label>
+              <input 
+                type="text" 
+                id="fullName"
+                name="name"
+                autoComplete="name"
+                required 
+                value={fullName} 
+                onChange={e => setFullName(e.target.value)} 
+                className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none" 
+                placeholder="Enter your name" 
+              />
             </div>
             
             <div>
-              <label className="block text-sm font-semibold mb-1">Mobile Number</label>
-              <input type="tel" required value={phone} onChange={e => setPhone(e.target.value)} className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none" placeholder="10-digit number" />
+              <label htmlFor="phone" className="block text-sm font-semibold mb-1">Mobile Number</label>
+              <input 
+                type="tel" 
+                id="phone"
+                name="tel"
+                autoComplete="tel"
+                required 
+                value={phone} 
+                onChange={e => setPhone(e.target.value.replace(/\D/g, ''))} 
+                className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none" 
+                placeholder="10-digit number" 
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1">Email Address</label>
-              <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none" placeholder="your@email.com" />
+              <label htmlFor="email" className="block text-sm font-semibold mb-1">Email Address</label>
+              <input 
+                type="email" 
+                id="email"
+                name="email"
+                autoComplete="email"
+                required 
+                value={email} 
+                onChange={e => setEmail(e.target.value)} 
+                className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none" 
+                placeholder="your@email.com" 
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1">Role</label>
-              <select value={role} onChange={e => setRole(e.target.value)} className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none">
+              <label htmlFor="role" className="block text-sm font-semibold mb-1">Role</label>
+              <select 
+                id="role"
+                name="role"
+                value={role} 
+                onChange={e => setRole(e.target.value)} 
+                className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none"
+              >
                 <option value="farmer">Farmer</option>
                 <option value="student">Agri-Student</option>
                 <option value="expert">Agricultural Expert</option>
@@ -122,13 +165,33 @@ export default function Signup() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1">Address</label>
-              <textarea required value={address} onChange={e => setAddress(e.target.value)} rows={2} className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none resize-none" placeholder="Full delivery address..." />
+              <label htmlFor="address" className="block text-sm font-semibold mb-1">Address</label>
+              <textarea 
+                id="address"
+                name="street-address"
+                autoComplete="street-address"
+                required 
+                value={address} 
+                onChange={e => setAddress(e.target.value)} 
+                rows={2} 
+                className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none resize-none" 
+                placeholder="Full delivery address..." 
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1">Password</label>
-              <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none" placeholder="Minimum 6 characters" />
+              <label htmlFor="password" className="block text-sm font-semibold mb-1">Password</label>
+              <input 
+                type="password" 
+                id="password"
+                name="new-password"
+                autoComplete="new-password"
+                required 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                className="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-green-600 outline-none" 
+                placeholder="Minimum 6 characters" 
+              />
             </div>
 
             <button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mt-4 transition-colors">
@@ -139,8 +202,19 @@ export default function Signup() {
           <form onSubmit={handleVerifyOtp} className="space-y-4 text-left animate-in fade-in zoom-in duration-300">
             <div className="bg-green-50 text-green-800 p-4 rounded-lg text-sm mb-4">An SMS verification code was sent to <strong>{phone}</strong>.</div>
             <div>
-              <label className="block text-sm font-semibold mb-1">Enter OTP</label>
-              <input type="text" required maxLength={6} value={otp} onChange={e => setOtp(e.target.value)} className="w-full border p-3 text-center text-2xl tracking-widest rounded-lg font-mono focus:ring-1 focus:ring-green-600 outline-none" placeholder="000000" />
+              <label htmlFor="otp" className="block text-sm font-semibold mb-1">Enter OTP</label>
+              <input 
+                type="text" 
+                id="otp"
+                name="one-time-code"
+                autoComplete="one-time-code"
+                required 
+                maxLength={6} 
+                value={otp} 
+                onChange={e => setOtp(e.target.value.replace(/\D/g, ''))} 
+                className="w-full border p-3 text-center text-2xl tracking-widest rounded-lg font-mono focus:ring-1 focus:ring-green-600 outline-none" 
+                placeholder="000000" 
+              />
             </div>
             <button type="submit" disabled={loading || otp.length !== 6} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mt-4 transition-colors">
               {loading ? 'Verifying...' : 'Verify & Complete Registration'}

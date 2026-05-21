@@ -5,10 +5,14 @@ import { supabase, Notification, TrainingEnrollment } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { user, profile, refreshProfile, signOut } = useAuth();
+  const { user, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   
+  // Local profile state to handle the fresh registration data
+  const [profileData, setProfileData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   // Form State
   const [formData, setFormData] = useState({
     full_name: '',
@@ -21,18 +25,45 @@ export default function Dashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [enrollments, setEnrollments] = useState<TrainingEnrollment[]>([]);
 
-  // Automatically populate form when profile data loads from user_details table
-  useEffect(() => {
-    if (profile) {
-      setFormData({
-        full_name: profile.full_name || '',
-        mobile_number: profile.mobile_number || '',
-        email_address: profile.email_address || '',
-        address: profile.address || '',
-        role: profile.role || 'farmer',
-      });
+  // Function to fetch data from the user_details table
+  const fetchFreshProfile = useCallback(async (retryCount = 0) => {
+    if (!user) {
+      setIsLoading(false);
+      return;
     }
-  }, [profile]);
+    
+    const { data, error } = await supabase
+      .from('user_details')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (data && !error) {
+      setProfileData(data);
+      setFormData({
+        full_name: data.full_name || '',
+        mobile_number: data.mobile_number || '',
+        email_address: data.email_address || '',
+        address: data.address || '',
+        role: data.role || 'farmer',
+      });
+      setIsLoading(false);
+    } else if (retryCount < 3) {
+      // If data is missing (due to sign-up row insertion delay), wait 600ms and try again
+      setTimeout(() => {
+        fetchFreshProfile(retryCount + 1);
+      }, 600);
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  // Initial trigger for profile loading
+  useEffect(() => {
+    if (user) {
+      fetchFreshProfile();
+    }
+  }, [user, fetchFreshProfile]);
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
@@ -73,7 +104,7 @@ export default function Dashboard() {
     await fetchNotifications();
   }, [fetchNotifications]);
 
-  // --- SAVES DATA TO NEW USER_DETAILS TABLE ---
+  // --- SAVES DATA TO USER_DETAILS TABLE ---
   async function handleSave() {
     if (!user) return;
     setSaving(true);
@@ -92,7 +123,10 @@ export default function Dashboard() {
     if (error) {
       alert("Error updating profile: " + error.message);
     } else {
-      await refreshProfile();
+      setProfileData({ ...profileData, ...formData });
+      if (refreshProfile) {
+        await refreshProfile();
+      }
       setEditing(false);
     }
     setSaving(false);
@@ -110,6 +144,15 @@ export default function Dashboard() {
     }
   }, [user, fetchNotifications, fetchEnrollments]);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center pt-20 bg-gray-50">
+        <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-sm font-medium text-gray-600">Setting up your profile...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-20 min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -121,9 +164,8 @@ export default function Dashboard() {
                 <User className="w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">{profile?.full_name || 'User'}</h1>
-                {/* Fixed to load your actual custom email address field */}
-                <p className="text-green-200 text-sm">{profile?.email_address || 'No email specified'}</p>
+                <h1 className="text-2xl font-bold">{profileData?.full_name || 'User'}</h1>
+                <p className="text-green-200 text-sm">{profileData?.email_address || 'No email specified'}</p>
               </div>
             </div>
           </div>
@@ -136,23 +178,23 @@ export default function Dashboard() {
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Full Name</label>
-                    <p className="text-gray-900 font-medium mt-1">{profile?.full_name || '—'}</p>
+                    <p className="text-gray-900 font-medium mt-1">{profileData?.full_name || '—'}</p>
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Email Address</label>
-                    <p className="text-gray-900 font-medium mt-1">{profile?.email_address || '—'}</p>
+                    <p className="text-gray-900 font-medium mt-1">{profileData?.email_address || '—'}</p>
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Mobile</label>
-                    <p className="text-gray-900 font-medium mt-1">{profile?.mobile_number || '—'}</p>
+                    <p className="text-gray-900 font-medium mt-1">{profileData?.mobile_number || '—'}</p>
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</label>
-                    <p className="text-gray-900 font-medium mt-1 capitalize">{profile?.role?.replace('_', ' ') || '—'}</p>
+                    <p className="text-gray-900 font-medium mt-1 capitalize">{profileData?.role?.replace('_', ' ') || '—'}</p>
                   </div>
                   <div className="sm:col-span-2">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Address</label>
-                    <p className="text-gray-900 font-medium mt-1">{profile?.address || '—'}</p>
+                    <p className="text-gray-900 font-medium mt-1">{profileData?.address || '—'}</p>
                   </div>
                 </div>
 
@@ -249,7 +291,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* My Courses and Notifications Row */}
+        {/* Course and Notifications view */}
         <div className="grid md:grid-cols-2 gap-6 mt-8">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">My Courses</h2>
@@ -280,12 +322,14 @@ export default function Dashboard() {
                 {notifications.map((notification) => (
                   <div key={notification.id} className="p-3 bg-gray-50 rounded-lg">
                     <p className="text-gray-900 text-sm">{notification.message}</p>
-                    <button
-                      onClick={() => markAsRead(notification.id)}
-                      className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      Mark as Read
-                    </button>
+                    {!notification.is_read && (
+                      <button
+                        onClick={() => markAsRead(notification.id)}
+                        className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        Mark as Read
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

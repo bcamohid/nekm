@@ -4,42 +4,46 @@ serve(async (req) => {
   try {
     const payload = await req.json()
     
-    // SMSCountry hates the "+" symbol. Let's strip it out! (+91... becomes 91...)
-    const phone = payload.user.phone.replace('+', '')
+    // Supabase Auth Hook automatically injects the phone number and generated OTP
+    const phone = payload.user.phone
     const otpCode = payload.sms.otp
 
-    const AUTH_KEY = Deno.env.get("SMSCOUNTRY_AUTH_KEY") || ""
-    const AUTH_TOKEN = Deno.env.get("SMSCOUNTRY_AUTH_TOKEN") || ""
+    // Fetch Twilio credentials from Supabase secrets
+    const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID") || ""
+    const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN") || ""
+    const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER") || ""
+
+    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
+      throw new Error("Missing Twilio credentials in Edge Function configuration.")
+    }
     
-    // IMPORTANT: This must be your EXACT approved 6-letter Sender ID
-    const SENDER_ID = "KRISHI" 
-    
-    // IMPORTANT: This text MUST exactly match your approved DLT template
     const message = `Your verification code for North East Krishi Mitra is ${otpCode}. Please do not share this with anyone.`
 
-    const credentials = btoa(`${AUTH_KEY}:${AUTH_TOKEN}`)
+    // Twilio REST API strictly requires application/x-www-form-urlencoded data
+    const body = new URLSearchParams({
+      To: phone,
+      From: TWILIO_PHONE_NUMBER,
+      Body: message
+    })
+
+    const credentials = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`)
     
-    // FIXED: Changed api.smscountry.com to restapi.smscountry.com
-    const response = await fetch(`https://restapi.smscountry.com/v0.1/Accounts/${AUTH_KEY}/SMSes/`, {
+    const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': `Basic ${credentials}`
       },
-      body: JSON.stringify({
-        Text: message,
-        Number: phone,
-        SenderId: SENDER_ID,
-        Tool: "API"
-      })
+      body: body.toString()
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error("SMSCountry Error:", errorText)
-      throw new Error(`SMSCountry Error: ${errorText}`)
+      const errorData = await response.json()
+      console.error("Twilio API Error:", errorData)
+      throw new Error(errorData.message || "Twilio rejected the SMS request")
     }
 
+    // Success: Supabase requires an empty JSON object to proceed securely
     return new Response(JSON.stringify({}), {
       headers: { "Content-Type": "application/json" },
       status: 200,
@@ -48,6 +52,8 @@ serve(async (req) => {
   } catch (error) {
     console.error("Function Error:", error.message)
     
+    // Failure: Return a 200 status code but with a structured error object.
+    // This securely passes the error to the React frontend without causing an "Invalid payload" crash.
     return new Response(JSON.stringify({
       error: {
         http_code: 400,
