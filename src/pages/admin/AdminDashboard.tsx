@@ -72,7 +72,6 @@ export default function AdminDashboard() {
 
   // --- FETCH FUNCTIONS ---
   async function fetchStats() {
-    // FIXED: Changed from 'profiles' to 'user_details'
     const [profilesData, servicesData, trainingsCount, shopData, ordersData, helpData] = await Promise.all([
       supabase.from('user_details').select('id', { count: 'exact', head: true }),
       supabase.from('services').select('id', { count: 'exact', head: true }),
@@ -98,7 +97,6 @@ export default function AdminDashboard() {
   }
 
   async function fetchProfiles() {
-    // FIXED: Changed from 'profiles' to 'user_details'
     const { data, error } = await supabase.from('user_details').select('id, full_name, email_address, role, created_at').order('created_at', { ascending: false });
     if (error) return;
     setProfiles(data || []);
@@ -336,13 +334,6 @@ export default function AdminDashboard() {
     await fetchOrders();
   }
 
-  const cards = [
-    { icon: Users, label: 'Total Users', value: stats.profiles, color: 'blue' },
-    { icon: BarChart3, label: 'Services', value: stats.services, color: 'green' },
-    { icon: BookOpen, label: 'Trainings', value: stats.trainings, color: 'purple' },
-    { icon: ShoppingBag, label: 'Products', value: stats.shop, color: 'amber' },
-  ];
-
   const colorClasses = {
     blue: 'bg-blue-50 text-blue-600 border-blue-100',
     green: 'bg-green-50 text-green-600 border-green-100',
@@ -382,6 +373,8 @@ export default function AdminDashboard() {
               >
                 {showShopPanel ? 'Hide Shop Panel' : 'Shop Items'}
               </button>
+              
+              {/* UPDATED: Manage Enrollments button with Badge Notification */}
               <button
                 type="button"
                 onClick={() => {
@@ -391,7 +384,14 @@ export default function AdminDashboard() {
                 className="inline-flex items-center justify-center rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors"
               >
                 {showEnrollmentPanel ? 'Hide Enrollments' : 'Manage Enrollments'}
+                {enrollments.filter(e => e.status === 'pending').length > 0 && (
+                  <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-0.5 text-xs">
+                    {enrollments.filter(e => e.status === 'pending').length}
+                  </span>
+                )}
               </button>
+
+              {/* UPDATED: Manage Orders button with Badge Notification */}
               <button
                 type="button"
                 onClick={() => {
@@ -401,9 +401,14 @@ export default function AdminDashboard() {
                 className="inline-flex items-center justify-center rounded-lg border border-emerald-600 bg-white px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 transition-colors"
               >
                 {showOrdersPanel ? 'Hide Orders' : 'Manage Orders'}
+                {orders.filter(o => o.status === 'pending').length > 0 && (
+                  <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-0.5 text-xs">
+                    {orders.filter(o => o.status === 'pending').length}
+                  </span>
+                )}
               </button>
               
-              {/* NEW HELP BUTTON */}
+              {/* HELP BUTTON */}
               <button
                 type="button"
                 onClick={() => {
