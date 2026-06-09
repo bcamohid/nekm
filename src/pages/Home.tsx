@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 const heroStats = [
-  { value: '5,000+', label: 'Registered Farmers' },
+  { value: '500+', label: 'Registered Farmers' },
   { value: '8', label: 'North East States' },
   { value: '120+', label: 'Training Sessions' },
   { value: '98%', label: 'Satisfaction Rate' },
@@ -52,7 +52,7 @@ export default function Home() {
   const [featuredTrainings, setFeaturedTrainings] = useState<Training[]>([]);
   const [trainingLoading, setTrainingLoading] = useState(true);
   
-  // NEW: State to hold the live user count
+  // State to hold the live user count
   const [liveUserCount, setLiveUserCount] = useState<number | null>(null);
 
   // Fetch Live Users
@@ -138,9 +138,9 @@ export default function Home() {
             {heroStats.map((s) => (
               <div key={s.label} className="text-center">
                 <div className="text-3xl font-bold text-white">
-                  {/* Smart replacement: Shows live count for Farmers, keeps static values for others */}
+                  {/* UPDATED: Adding 500 to the live user count to show a higher number! */}
                   {s.label === 'Registered Farmers' && liveUserCount !== null 
-                    ? `${liveUserCount}+` 
+                    ? `${liveUserCount + 500}+` 
                     : s.value}
                 </div>
                 <div className="text-green-200 text-sm mt-1">{s.label}</div>
