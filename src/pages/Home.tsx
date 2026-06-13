@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase, Training } from '../lib/supabase';
 import {
   Sprout, FlaskConical, CloudSun, Store, Landmark, Users,
-  ArrowRight, CheckCircle, Star, ChevronRight,
+  ArrowRight, CheckCircle, Star, ChevronRight, X // Added 'X' for the modal close button
 } from 'lucide-react';
 
 const heroStats = [
@@ -54,6 +54,25 @@ export default function Home() {
   
   // State to hold the live user count
   const [liveUserCount, setLiveUserCount] = useState<number | null>(null);
+
+  // --- AD MODAL STATE & LOGIC ---
+  const [showAdModal, setShowAdModal] = useState(false);
+
+  // 1. Show the modal 3 seconds after the page loads
+  useEffect(() => {
+    const initialTimer = setTimeout(() => {
+      setShowAdModal(true);
+    }, 3000);
+    return () => clearTimeout(initialTimer); // Cleanup
+  }, []);
+
+  // 2. Hide the modal, but force it to return 10 seconds later
+  const handleCloseAd = () => {
+    setShowAdModal(false);
+    setTimeout(() => {
+      setShowAdModal(true);
+    }, 10000);
+  };
 
   // Fetch Live Users
   useEffect(() => {
@@ -362,6 +381,55 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* --- PROMOTIONAL AD MODAL --- */}
+      {showAdModal && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300">
+            
+            {/* Close Button */}
+            <button
+              onClick={handleCloseAd}
+              className="absolute top-3 right-3 text-white hover:text-gray-900 hover:bg-white/90 bg-black/20 backdrop-blur-md rounded-full p-1.5 transition-colors z-20"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Banner Header */}
+            <div className="bg-green-700 p-8 text-center text-white relative overflow-hidden">
+              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('https://images.pexels.com/photos/2132250/pexels-photo-2132250.jpeg')", backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+              <div className="relative z-10">
+                <span className="inline-block bg-amber-400 text-amber-900 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-3 shadow-sm">
+                  Special Offer
+                </span>
+                <h2 className="text-3xl font-black mb-1 leading-tight">Training Enrollment is LIVE!</h2>
+                <p className="text-green-100 text-sm font-medium mt-2 tracking-wide uppercase">⚡ Limited Time Only</p>
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-6 text-center">
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Hurry up! Seats are filling fast for our upcoming expert-led agricultural training sessions. Secure your spot today to transform your farming journey.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCloseAd}
+                  className="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-colors text-sm"
+                >
+                  Later
+                </button>
+                <Link
+                  to="/training"
+                  className="w-2/3 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-green-600/30 flex justify-center items-center gap-2"
+                >
+                  Enroll Now <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
