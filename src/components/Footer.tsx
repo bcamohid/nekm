@@ -5,7 +5,7 @@ export default function Footer() {
   
   // --- ADD YOUR SOCIAL MEDIA LINKS HERE ---
   const socialLinks = [
-    { Icon: Facebook, url: 'https://www.facebook.com/profile.php?id=61589915551482' },
+    { Icon: Facebook, url: 'https://www.facebook.com/share/1BP9stmRbt/' },
     { Icon: Twitter, url: '' },
     { Icon: Youtube, url: '' },
     { Icon: Instagram, url: 'https://www.instagram.com/_northeastkrishimitra_?igsh=MTJhbzhqaXQxYml6' },
