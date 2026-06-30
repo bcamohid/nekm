@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import myQrCode from '../assets/QR.png'; 
 
+// Smart Fallback Image in case the database URL is broken
+const DEFAULT_COURSE_IMG = "https://images.pexels.com/photos/2132250/pexels-photo-2132250.jpeg";
 
 export default function TrainingPage() {
   const { user, profile } = useAuth();
@@ -112,8 +114,14 @@ export default function TrainingPage() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {trainings.map((t) => (
                 <div key={t.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group">
-                  <div className="relative h-48 overflow-hidden">
-                    <img src={t.image_url} alt={t.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  <div className="relative h-48 overflow-hidden bg-gray-100">
+                    {/* ADDED: Fallback Image Logic */}
+                    <img 
+                      src={t.image_url || DEFAULT_COURSE_IMG} 
+                      onError={(e) => { e.currentTarget.src = DEFAULT_COURSE_IMG; }}
+                      alt={t.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                    />
                     <div className={`absolute top-3 right-3 ${modeColor(t.mode)} px-3 py-1 rounded-lg text-xs font-bold uppercase`}>{t.mode}</div>
                   </div>
                   <div className="p-6">
@@ -123,7 +131,6 @@ export default function TrainingPage() {
                       <div className="flex items-center gap-1.5 text-xs text-gray-600"><Calendar className="w-4 h-4 text-green-600" /> {t.duration}</div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-600"><Users className="w-4 h-4 text-green-600" /> Group Session</div>
                     </div>
-                    {/* UPDATED: View Details Button */}
                     <button onClick={() => openDetailsModal(t)} className="w-full mt-4 bg-green-50 hover:bg-green-100 text-green-700 font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 border border-green-200 transition-colors">
                       <Info className="w-4 h-4" /> View Details
                     </button>
@@ -156,7 +163,13 @@ export default function TrainingPage() {
               {/* STEP 1: COURSE DETAILS */}
               {modalStep === 'details' && (
                 <div className="space-y-4">
-                  <img src={selectedCourse.image_url} alt={selectedCourse.title} className="w-full h-40 object-cover rounded-xl mb-4" />
+                  {/* ADDED: Fallback Image Logic */}
+                  <img 
+                    src={selectedCourse.image_url || DEFAULT_COURSE_IMG} 
+                    onError={(e) => { e.currentTarget.src = DEFAULT_COURSE_IMG; }}
+                    alt={selectedCourse.title} 
+                    className="w-full h-40 object-cover rounded-xl mb-4 bg-gray-100" 
+                  />
                   <h2 className="text-xl font-bold text-gray-900 leading-tight">{selectedCourse.title}</h2>
                   <div className="flex gap-2">
                     <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${modeColor(selectedCourse.mode)}`}>{selectedCourse.mode}</span>
