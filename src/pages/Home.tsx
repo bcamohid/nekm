@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase, Training } from '../lib/supabase';
 import {
   Sprout, FlaskConical, CloudSun, Store, Landmark, Users,
-  ArrowRight, CheckCircle, Star, ChevronRight, X // Added 'X' for the modal close button
+  ArrowRight, CheckCircle, Star, ChevronRight, X 
 } from 'lucide-react';
 
 const heroStats = [
@@ -110,15 +110,60 @@ export default function Home() {
 
   return (
     <div className="pt-16">
+      
+      {/* --- SEAMLESS INFINITE MARQUEE --- */}
+      <style>
+        {`
+          @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-marquee-custom {
+            display: flex;
+            width: max-content;
+            animation: marquee 20s linear infinite;
+          }
+          .animate-marquee-custom:hover {
+            animation-play-state: paused;
+          }
+        `}
+      </style>
+      <div className="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 overflow-hidden py-3.5 mt-8shadow-lg relative z-30 border-b-2 border-orange-600">
+        <div className="animate-marquee-custom items-center whitespace-nowrap text-white font-extrabold text-base md:text-lg tracking-widest uppercase">
+          
+          {/* GROUP 1 */}
+          <div className="flex items-center">
+            <span className="mx-8">New training session will be live from 28th July</span>
+            <Star className="w-5 h-5 fill-white flex-shrink-0" />
+            <span className="mx-8">New training session will be live from 28th July</span>
+            <Star className="w-5 h-5 fill-white flex-shrink-0" />
+            <span className="mx-8">New training session will be live from 28th July</span>
+            <Star className="w-5 h-5 fill-white flex-shrink-0" />
+          </div>
+
+          {/* GROUP 2 (EXACT DUPLICATE FOR SEAMLESS LOOPING) */}
+          <div className="flex items-center">
+            <span className="mx-8">New training session will be live from 28th July</span>
+            <Star className="w-5 h-5 fill-white flex-shrink-0" />
+            <span className="mx-8">New training session will be live from 28th July</span>
+            <Star className="w-5 h-5 fill-white flex-shrink-0" />
+            <span className="mx-8">New training session will be live from 28th July</span>
+            <Star className="w-5 h-5 fill-white flex-shrink-0" />
+          </div>
+
+        </div>
+      </div>
+      {/* ------------------------------------ */}
+
       {/* Hero */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
+      <section className="relative min-h-[85vh] flex items-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: "url('https://images.pexels.com/photos/974314/pexels-photo-974314.jpeg')" }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-green-900/85 via-green-800/70 to-green-700/40" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 mt-4">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 bg-green-500/20 border border-green-400/30 text-green-300 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
               <Sprout className="w-3.5 h-3.5" /> North East India's Agri Platform
@@ -381,55 +426,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* --- PROMOTIONAL AD MODAL --- */}
-      {showAdModal && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300">
-            
-            {/* Close Button */}
-            <button
-              onClick={handleCloseAd}
-              className="absolute top-3 right-3 text-white hover:text-gray-900 hover:bg-white/90 bg-black/20 backdrop-blur-md rounded-full p-1.5 transition-colors z-20"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Banner Header */}
-            <div className="bg-green-700 p-8 text-center text-white relative overflow-hidden">
-              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('https://images.pexels.com/photos/2132250/pexels-photo-2132250.jpeg')", backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-              <div className="relative z-10">
-                <span className="inline-block bg-amber-400 text-amber-900 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-3 shadow-sm">
-                  Special Offer
-                </span>
-                <h2 className="text-3xl font-black mb-1 leading-tight">Training Enrollment is LIVE!</h2>
-                <p className="text-green-100 text-sm font-medium mt-2 tracking-wide uppercase">⚡ Limited Time Only</p>
-              </div>
-            </div>
-
-            {/* Content Body */}
-            <div className="p-6 text-center">
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Hurry up! Seats are filling fast for our upcoming expert-led agricultural training sessions. Secure your spot today to transform your farming journey.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleCloseAd}
-                  className="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-colors text-sm"
-                >
-                  Later
-                </button>
-                <Link
-                  to="/training"
-                  className="w-2/3 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-green-600/30 flex justify-center items-center gap-2"
-                >
-                  Enroll Now <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
