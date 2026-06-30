@@ -8,7 +8,7 @@ export default function Footer() {
     { Icon: Facebook, url: 'https://www.facebook.com/profile.php?id=61589915551482' },
     { Icon: Twitter, url: '' },
     { Icon: Youtube, url: '' },
-    { Icon: Instagram, url: '' },
+    { Icon: Instagram, url: 'https://www.instagram.com/_northeastkrishimitra_?igsh=MTJhbzhqaXQxYml6' },
   ];
 
   return (
