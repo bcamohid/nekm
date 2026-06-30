@@ -133,21 +133,21 @@ export default function Home() {
           
           {/* GROUP 1 */}
           <div className="flex items-center">
-            <span className="mx-8">New training session will be live from 26th July</span>
+            <span className="mx-8">A new training session will be held on July 26th</span>
             <Star className="w-5 h-5 fill-white flex-shrink-0" />
-            <span className="mx-8">New training session will be live from 26th July</span>
+            <span className="mx-8">A new training session will be held on July 26th</span>
             <Star className="w-5 h-5 fill-white flex-shrink-0" />
-            <span className="mx-8">New training session will be live from 26th July</span>
+            <span className="mx-8">A new training session will be held on July 26th</span>
             <Star className="w-5 h-5 fill-white flex-shrink-0" />
           </div>
 
           {/* GROUP 2 (EXACT DUPLICATE FOR SEAMLESS LOOPING) */}
           <div className="flex items-center">
-            <span className="mx-8">New training session will be live from 26th July</span>
+            <span className="mx-8">A new training session will be held on July 26th</span>
             <Star className="w-5 h-5 fill-white flex-shrink-0" />
-            <span className="mx-8">New training session will be live from 26th July</span>
+            <span className="mx-8">A new training session will be held on July 26th</span>
             <Star className="w-5 h-5 fill-white flex-shrink-0" />
-            <span className="mx-8">New training session will be live from 26th July</span>
+            <span className="mx-8">A new training session will be held on July 26th</span>
             <Star className="w-5 h-5 fill-white flex-shrink-0" />
           </div>
 
